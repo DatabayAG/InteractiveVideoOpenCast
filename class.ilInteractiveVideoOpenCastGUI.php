@@ -1,12 +1,25 @@
 <?php
 require_once 'Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/interface.ilInteractiveVideoSourceGUI.php';
 require_once 'Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/class.ilInteractiveVideoOpenCast.php';
+require_once 'Customizing/global/plugins/Services/COPage/PageComponent/OpencastPageComponent/vendor/autoload.php';
+require_once 'Customizing/global/plugins/Services/Repository/RepositoryObject/OpenCast/vendor/autoload.php';
+
+use ILIAS\DI\Container;
 
 /**
  * Class ilInteractiveVideoOpenCastGUI
  */
 class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 {
+
+    const CMD_SAVE = 'save';
+    const CMD_INDEX = 'index';
+
+    /**
+     * @var Container
+     */
+    protected $dic;
+
 	/**
 	 * @param ilRadioOption $option
 	 * @param               $obj_id
@@ -14,17 +27,33 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	 */
 	public function getForm($option, $obj_id)
 	{
-		global $tpl, $lng;
-		//$tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
+		global $tpl, $lng, $DIC;
+		$this->dic = $DIC;
+		$tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
 		$opc_id = new ilTextInputGUI(ilInteractiveVideoPlugin::getInstance()->txt('opc_id'), 'opc_id');
 		$object = new ilInteractiveVideoOpenCast();
 		$object->doReadVideoSource($obj_id);
 		$opc_id->setValue($object->getOpcId());
-		$opc_id->setInfo(ilInteractiveVideoPlugin::getInstance()->txt('opc_id_info'));
+
+        $opc_id->setInfo(ilInteractiveVideoPlugin::getInstance()->txt('opc_selection_info'));
 		$option->addSubItem($opc_id);
 		$opc_url = new ilHiddenInputGUI('opc_url');
 		$opc_url->setValue($object->getOpcUrl());
 		$option->addSubItem($opc_url);
+
+		$modal = ilModalGUI::getInstance();
+        $modal->setId("OpencastSelectionModal");
+        $modal->setType(ilModalGUI::TYPE_LARGE);
+        $modal->setBody('');#$this->getTable()->getHTML());
+        $mod = new ilCustomInputGUI('', '');
+        $mod->setHtml($modal->getHTML());
+        $option->addSubItem($mod);
+        $action_text = ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video');
+        $opc_inject_text = new ilHiddenInputGUI('opc_inject_text');
+        $opc_inject_text->setValue($action_text);
+		$option->addSubItem($opc_inject_text);
+
+
 		return $option;
 	}
 
@@ -89,7 +118,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	 */
 	public function getConfigForm($form)
 	{
-
+        $event_id = $_GET[VideoSearchTableGUI::GET_PARAM_EVENT_ID];
 	}
 
 	/**
@@ -99,5 +128,32 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	{
 		return false;
 	}
+
+    protected function getTable() {
+        return new VideoSearchTableGUI($this, self::CMD_INDEX, $this->dic, 'heise.de');
+    }
+
+    protected function applyFilter() {
+        $table = $this->getTable();
+        $table->resetOffset();
+        $table->writeFilterToSession();
+        $this->dic->ctrl()->redirect($this, self::CMD_INDEX);
+    }
+
+    protected function resetFilter() {
+        $table = $this->getTable();
+        $table->resetOffset();
+        $table->resetFilter();
+        $this->dic->ctrl()->redirect($this, self::CMD_INDEX);
+    }
+
+    protected function getVideoUrl(string $event_id) {
+        $event = xoctInternalAPI::getInstance()->events()->read($event_id);
+        $download_dtos = $event->publications()->getDownloadDtos(); // sortiert nach Auflösung (descending)
+        if (empty($download_dtos)) {
+            throw new ilException('Video with id ' . $event_id . ' has no valid download url');
+        }
+        return array_shift($download_dtos)->getUrl(); // höchste Auflösung, URL unter Umständen signiert (nur temporär gültig)
+    }
 
 }
