@@ -12,6 +12,16 @@ use ILIAS\DI\Container;
 class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 {
 
+    const PLUGIN_CLASS_NAME = ilOpencastPageComponentPlugin::class;
+    const CMD_CANCEL = "cancel";
+    const CMD_CREATE = "create";
+    const CMD_EDIT = "edit";
+    const CMD_INSERT = "insert";
+    const CMD_UPDATE = "update";
+    const CMD_APPLY_FILTER = "applyFilter";
+    const CMD_RESET_FILTER = "resetFilter";
+    const CUSTOM_CMD = 'ocpc_cmd';
+    const POST_SIZE = 'size';
     const CMD_SAVE = 'save';
     const CMD_INDEX = 'index';
 
@@ -19,6 +29,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
      * @var Container
      */
     protected $dic;
+
+    protected $ilCtrlFake;
 
 	/**
 	 * @param ilRadioOption $option
@@ -29,6 +41,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	{
 		global $tpl, $lng, $DIC;
 		$this->dic = $DIC;
+        $ctrl = $DIC->ctrl(); // FROM DIC
+        $this->ilCtrlFake = $this->getIlCtrlTabFake();
+
 		$tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
 		$opc_id = new ilTextInputGUI(ilInteractiveVideoPlugin::getInstance()->txt('opc_id'), 'opc_id');
 		$object = new ilInteractiveVideoOpenCast();
@@ -44,7 +59,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		$modal = ilModalGUI::getInstance();
         $modal->setId("OpencastSelectionModal");
         $modal->setType(ilModalGUI::TYPE_LARGE);
-        $modal->setBody('');#$this->getTable()->getHTML());
+        $modal->setBody($this->getTable()->getHTML());
         $mod = new ilCustomInputGUI('', '');
         $mod->setHtml($modal->getHTML());
         $option->addSubItem($mod);
@@ -52,8 +67,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $opc_inject_text = new ilHiddenInputGUI('opc_inject_text');
         $opc_inject_text->setValue($action_text);
 		$option->addSubItem($opc_inject_text);
-
-
+        $this->restoreIlCtrl($ctrl);
 		return $option;
 	}
 
@@ -79,9 +93,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	public function addPlayerElements($tpl)
 	{
 		$tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/jquery.InteractiveVideoOpenCastPlayer.js');
-        // opc: jumpMedia - prevent custom player for interactive video
         ilPlayerUtil::initMediaElementJs($tpl, false);
-        // opc.
 		return $tpl;
 	}
 
@@ -96,7 +108,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		$instance	= new ilInteractiveVideoOpenCast();
 		$instance->doReadVideoSource($obj->getId());
 		$player->setVariable('PLAYER_ID', $player_id);
-		$player->setVariable('OPC_URL', $instance->getOpcUrl());
+		$url = xoctSecureLink::signPlayer($this->getVideoUrl($instance->getOpcId()));
+       # $signed_url = xoctConf::getConfig(xoctConf::F_SIGN_DOWNLOAD_LINKS) ? xoctSecureLink::signDownload($url) : $url;
+		$player->setVariable('OPC_URL', $url);
 		return $player;
 	}
 
@@ -130,7 +144,10 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	}
 
     protected function getTable() {
-        return new VideoSearchTableGUI($this, self::CMD_INDEX, $this->dic, 'heise.de');
+        $this->dic->ctrl()->clearParameterByClass(self::class, self::CUSTOM_CMD);
+        $command_url = $this->dic->ctrl()->getLinkTarget($this, self::CMD_CREATE);
+        $this->dic->ctrl()->setParameter($this, self::CUSTOM_CMD, self::CMD_APPLY_FILTER);
+        return new VideoSearchTableGUI($this->ilCtrlFake, self::CMD_INDEX, $this->dic, $command_url);
     }
 
     protected function applyFilter() {
@@ -156,4 +173,88 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         return array_shift($download_dtos)->getUrl(); // höchste Auflösung, URL unter Umständen signiert (nur temporär gültig)
     }
 
+    private function getIlCtrlTabFake() : ilCtrl
+    {
+        unset($this->dic['ilCtrl']);
+        $ilCtrlFake = new class() extends ilCtrl {
+            /** @var array[] */
+            protected $linkTargets = [];
+
+            /**
+             * @inheritDoc
+             */
+            public function getLinkTarget(
+                $a_gui_obj,
+                $a_cmd = "",
+                $a_anchor = "",
+                $a_asynch = false,
+                $xml_style = true
+            ) {
+// DO WHAEVER YOU WANT HERE
+                $hash = md5(implode('::', [
+                    get_class($a_gui_obj),
+                    $a_cmd
+                ]));
+
+                $this->linkTargets[$hash] = [[get_class($a_gui_obj)], $a_cmd];
+
+                return $hash;
+            }
+
+            /**
+             * @inheritDoc
+             */
+            public function getLinkTargetByClass(
+                $a_class,
+                $a_cmd = "",
+                $a_anchor = "",
+                $a_asynch = false,
+                $xml_style = true
+            ) {
+
+// DO WHAEVER YOU WANT HERE
+                if (is_string($a_class)) {
+                    $a_class = [$a_class];
+                }
+
+                $a_class = array_values($a_class);
+
+                $hash = md5(implode('::', [
+                    implode('|', $a_class),
+                    $a_cmd
+                ]));
+
+                $this->linkTargets[$hash] = [$a_class, $a_cmd];
+
+                return $hash;
+            }
+
+            /**
+             * @return array
+             */
+            public function getLinkTargets() : array
+            {
+                return $this->linkTargets;
+            }
+        };
+
+        $GLOBALS['ilCtrl'] = $ilCtrlFake;
+        $this->dic['ilCtrl'] = static function (Container $e) use ($ilCtrlFake) : ilCtrl {
+            return $ilCtrlFake;
+        };
+
+        return $ilCtrlFake;
+    }
+
+    /**
+     * @param ilCtrl $ctrl
+     */
+    private function restoreIlCtrl(ilCtrl $ctrl) : void
+    {
+        unset($this->dic['ilCtrl']);
+        $GLOBALS['ilCtrl'] = $ctrl;
+        $this->dic['ilCtrl'] = static function (Container $e) : ilCtrl {
+            return $GLOBALS['ilCtrl'];
+        };
+    }
 }
