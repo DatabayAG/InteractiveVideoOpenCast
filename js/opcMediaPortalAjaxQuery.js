@@ -9,6 +9,7 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         let action_text = 'Select';//$('#opc_inject_text').val();
         let action_link = help_text + ' <a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' + action_text + '</a>';
         help_block.html(action_link);
+        $('#OpencastSelectionModal .ilTableNav').hide();
     }
 
     pub.openSelectionModal = function(){

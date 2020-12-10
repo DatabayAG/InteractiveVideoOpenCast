@@ -32,6 +32,12 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
     protected $ilCtrlFake;
 
+    protected $command_url;
+
+    public function entryPoint(){
+        echo "hello";
+    }
+
 	/**
 	 * @param ilRadioOption $option
 	 * @param               $obj_id
@@ -42,6 +48,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		global $tpl, $lng, $DIC;
 		$this->dic = $DIC;
         $ctrl = $DIC->ctrl(); // FROM DIC
+        $this->dic->ctrl()->clearParameterByClass(self::class, self::CUSTOM_CMD);
+        $this->command_url = $this->dic->ctrl()->getLinkTargetByClass(['ilRepositoryGUI', 'ilObjInteractiveVideoGUI'], 'ilInteractiveVideoOpenCastGUI::create');
+        $this->dic->ctrl()->setParameter($this, self::CUSTOM_CMD, self::CMD_APPLY_FILTER);
         $this->ilCtrlFake = $this->getIlCtrlTabFake();
 
 		$tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
@@ -56,13 +65,15 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		$opc_url->setValue($object->getOpcUrl());
 		$option->addSubItem($opc_url);
 
-		$modal = ilModalGUI::getInstance();
+        $tpl_modal = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.modal.html', false, false);
+
+        $modal = ilModalGUI::getInstance();
         $modal->setId("OpencastSelectionModal");
         $modal->setType(ilModalGUI::TYPE_LARGE);
-        $modal->setBody($this->getTable()->getHTML());
-        $mod = new ilCustomInputGUI('', '');
-        $mod->setHtml($modal->getHTML());
-        $option->addSubItem($mod);
+        $modal->setBody($this->getTable($DIC)->getHTML());
+        $tpl_modal->setVariable('MODAL', $modal->getHTML());
+
+        $this->dic->ui()->mainTemplate()->setVariable('WEBDAV_MODAL', $tpl_modal->get());
         $action_text = ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video');
         $opc_inject_text = new ilHiddenInputGUI('opc_inject_text');
         $opc_inject_text->setValue($action_text);
@@ -143,22 +154,29 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		return false;
 	}
 
-    protected function getTable() {
-        $this->dic->ctrl()->clearParameterByClass(self::class, self::CUSTOM_CMD);
-        $command_url = $this->dic->ctrl()->getLinkTarget($this, self::CMD_CREATE);
-        $this->dic->ctrl()->setParameter($this, self::CUSTOM_CMD, self::CMD_APPLY_FILTER);
-        return new VideoSearchTableGUI($this->ilCtrlFake, self::CMD_INDEX, $this->dic, $command_url);
+    /**
+     * @param ILIAS\DI\Container $dic
+     * @return VideoSearchTableGUI
+     * @throws \srag\DIC\OpencastPageComponent\Exception\DICException
+     */
+    protected function getTable($dic) {
+        $table =  new VideoSearchTableGUI($this->ilCtrlFake, self::CMD_INDEX, $dic, $this->command_url);
+        $table->setLimit(PHP_INT_MAX);
+
+        return $table;
     }
 
-    protected function applyFilter() {
-        $table = $this->getTable();
+    public function applyFilter() {
+        global $DIC;
+        $table = $this->getTable($DIC);
         $table->resetOffset();
         $table->writeFilterToSession();
         $this->dic->ctrl()->redirect($this, self::CMD_INDEX);
     }
 
-    protected function resetFilter() {
-        $table = $this->getTable();
+    public function resetFilter() {
+        global $DIC;
+        $table = $this->getTable($DIC);
         $table->resetOffset();
         $table->resetFilter();
         $this->dic->ctrl()->redirect($this, self::CMD_INDEX);
@@ -175,30 +193,20 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
     private function getIlCtrlTabFake() : ilCtrl
     {
+        $oldIlCtrl = $this->dic->ctrl();
         unset($this->dic['ilCtrl']);
-        $ilCtrlFake = new class() extends ilCtrl {
+        $ilCtrlFake = new class($oldIlCtrl) extends ilCtrl {
             /** @var array[] */
             protected $linkTargets = [];
+            private $oldIlCtrl;
 
             /**
-             * @inheritDoc
+             *  constructor.
+             * @param ilCtrl $oldIlCtrl
              */
-            public function getLinkTarget(
-                $a_gui_obj,
-                $a_cmd = "",
-                $a_anchor = "",
-                $a_asynch = false,
-                $xml_style = true
-            ) {
-// DO WHAEVER YOU WANT HERE
-                $hash = md5(implode('::', [
-                    get_class($a_gui_obj),
-                    $a_cmd
-                ]));
-
-                $this->linkTargets[$hash] = [[get_class($a_gui_obj)], $a_cmd];
-
-                return $hash;
+            public function __construct(ilCtrl $oldIlCtrl)
+            {
+                $this->oldIlCtrl = $oldIlCtrl;
             }
 
             /**
@@ -212,21 +220,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
                 $xml_style = true
             ) {
 
-// DO WHAEVER YOU WANT HERE
-                if (is_string($a_class)) {
-                    $a_class = [$a_class];
-                }
+                $this->oldIlCtrl->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_plugin_ctrl', ilInteractiveVideoOpenCastGUI::class);
 
-                $a_class = array_values($a_class);
-
-                $hash = md5(implode('::', [
-                    implode('|', $a_class),
-                    $a_cmd
-                ]));
-
-                $this->linkTargets[$hash] = [$a_class, $a_cmd];
-
-                return $hash;
+                return $this->oldIlCtrl->getLinkTargetByClass([ilRepositoryGUI::class, ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], $a_cmd,$a_anchor, $a_asynch, $xml_style );
             }
 
             /**
