@@ -7,13 +7,19 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         let help_block = $('#opc_id').parent().find('.help-block');
         let help_text = help_block.html();
         let action_text = 'Select';//$('#opc_inject_text').val();
-        let action_link = help_text + ' <a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' + action_text + '</a>';
+        let action_link = help_text + ' <a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' + action_text + '</a><div class="opc_selected_title"></div>';
         help_block.html(action_link);
         $('#OpencastSelectionModal .ilTableNav').hide();
+        pro.addTitle();
     }
 
-    pub.openSelectionModal = function(){
-        $('#OpencastSelectionModal').modal('show');
+    pub.openSelectionModal = function(is_static){
+        let config = {};
+        if(is_static){
+            config = {backdrop: 'static', keyboard: false};
+        }
+        $('#OpencastSelectionModal').modal(config, 'show');
+        $('.modal-body').css('overflow', 'auto')
         pro.addActionToRow();
     }
 
@@ -24,6 +30,11 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
             pro.parseEventId($(this));
             event.preventDefault();
         });
+    }
+
+    pro.addTitle = function(){
+        let title = $('#opc_url').val();
+        $('.opc_selected_title').html(title);
     }
 
     pro.parseEventId = function(that){
@@ -37,11 +48,9 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
     }
 
     pro.addEventIdToForm = function(event_id, title){
-        if($('#title').val() === '') {
-            $('#title').val(title);
-        }
-
         $('#opc_id').val(event_id);
+        $('#opc_url').val(title);
+        pro.addTitle();
         $('#OpencastSelectionModal').modal('hide');
     }
 
