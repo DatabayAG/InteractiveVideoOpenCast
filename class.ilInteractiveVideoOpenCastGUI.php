@@ -31,8 +31,14 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
      */
     protected $dic;
 
+    /**
+     * @var ilCtrl
+     */
     protected $ilCtrlFake;
 
+    /**
+     * @var string
+     */
     protected $command_url;
 
 	/**
@@ -40,9 +46,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	 * @param               $obj_id
 	 * @return ilRadioOption
 	 */
-	public function getForm($option, $obj_id)
+	public function getForm($option, $obj_id) : ilRadioOption
 	{
-		global $tpl, $lng, $DIC;
+		global $tpl, $DIC;
 		$this->dic = $DIC;
         $ctrl = $DIC->ctrl(); // FROM DIC
         $this->createCtrlFake($this->dic);
@@ -51,7 +57,6 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
         if(array_key_exists('ref_id', $_GET) && (int) $_GET['ref_id'] === 1){
             $info_test = new ilNonEditableValueGUI();
-           # $info_test->setValue(ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first'));
             $info_test->setInfo('<b>'. ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first') .'</b>');
             $option->addSubItem($info_test);
 
@@ -94,7 +99,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	 * @param ilPropertyFormGUI $form
 	 * @return bool
 	 */
-	public function checkForm($form)
+	public function checkForm($form) :bool
 	{
 		$opc_url = ilUtil::stripSlashes($_POST['opc_url']);
 		if($opc_url != '' )
@@ -163,7 +168,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	/**
 	 * @return boolean
 	 */
-	public function hasOwnConfigForm()
+	public function hasOwnConfigForm() : bool
 	{
 		return false;
 	}
@@ -173,7 +178,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
      * @return VideoSearchTableGUI
      * @throws \srag\DIC\OpencastPageComponent\Exception\DICException
      */
-    protected function getTable($dic) {
+    protected function getTable(ILIAS\DI\Container $dic) : VideoSearchTableGUI{
         $this->createCtrlFake($dic);
         $table =  new VideoSearchTableGUI($this->ilCtrlFake, self::CMD_INDEX, $dic, $this->command_url);
         $table->setLimit(PHP_INT_MAX);
@@ -181,6 +186,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         return $table;
     }
 
+    /**
+     * @throws \srag\DIC\OpencastPageComponent\Exception\DICException
+     */
     public function applyFilter() {
         global $DIC;
         $table = $this->getTable($DIC);
@@ -189,6 +197,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $this->dic->ctrl()->redirect(new ilObjInteractiveVideoGUI(), 'editProperties');
     }
 
+    /**
+     *
+     */
     public function resetFilter() {
         global $DIC;
         $table = $this->getTable($DIC);
@@ -197,7 +208,13 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $this->dic->ctrl()->redirect(new ilObjInteractiveVideoGUI(), 'editProperties');
     }
 
-    protected function getVideoUrl(string $event_id) {
+    /**
+     * @param string $event_id
+     * @return string
+     * @throws ilException
+     * @throws xoctException
+     */
+    protected function getVideoUrl(string $event_id) : string {
         $event = xoctInternalAPI::getInstance()->events()->read($event_id);
         $download_dtos = $event->publications()->getDownloadDtos(); // sortiert nach Auflösung (descending)
         if (empty($download_dtos)) {
@@ -206,6 +223,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         return array_shift($download_dtos)->getUrl(); // höchste Auflösung, URL unter Umständen signiert (nur temporär gültig)
     }
 
+    /**
+     * @return ilCtrl
+     */
     private function getIlCtrlTabFake() : ilCtrl
     {
         $oldIlCtrl = $this->dic->ctrl();
@@ -271,6 +291,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         };
     }
 
+    /**
+     * @param $dic
+     */
     public function createCtrlFake($dic): void
     {
         $dic->ctrl()->clearParameterByClass(self::class, self::CUSTOM_CMD);
