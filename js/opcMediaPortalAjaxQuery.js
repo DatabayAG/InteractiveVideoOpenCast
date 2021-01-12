@@ -15,12 +15,17 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
 
     pub.openSelectionModal = function(is_static){
         let config = {};
+        let selected_video_id = pro.getSelectedVideoId();
         if(is_static){
             config = {backdrop: 'static', keyboard: false};
         }
         $('#OpencastSelectionModal').modal(config, 'show');
         $('.modal-body').css('overflow', 'auto')
         pro.addActionToRow();
+    }
+
+    pro.getSelectedVideoId = function(){
+        return $('#opc_id').val();
     }
 
     pro.addActionToRow = function(){

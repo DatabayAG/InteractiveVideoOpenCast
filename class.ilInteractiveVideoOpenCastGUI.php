@@ -51,7 +51,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
         if(array_key_exists('ref_id', $_GET) && (int) $_GET['ref_id'] === 1){
             $info_test = new ilNonEditableValueGUI();
-            $info_test->setValue(ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first'));
+           # $info_test->setValue(ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first'));
+            $info_test->setInfo('<b>'. ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first') .'</b>');
             $option->addSubItem($info_test);
 
             $opc_inject_text = new ilHiddenInputGUI('opc_id');
