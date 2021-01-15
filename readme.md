@@ -1,4 +1,6 @@
-#OpenCast InteractiveVideo Plugin
+# Version is in development use at your own risk
+
+# OpenCast InteractiveVideo Plugin
 ILIAS OpenCast Plugin for Interactive Video Plugin
 Only compatible with InteractiveVideo version 2.0.26 and higher
 
