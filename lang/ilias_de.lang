@@ -1,7 +1,7 @@
-opc#:#OpenCast
-opc_id#:#OpenCast Video Id
-opc_id_info#:#OpenCast Video Id
-opc_selection_info#:#OpenCast:
+opc#:#Opencast
+opc_id#:#Opencast Video Id
+opc_id_info#:#Opencast Video Id
+opc_selection_info#:#Opencast:
 opc_select_video#:#Video auswählen
 opc_title#:#Titel
 please_create_object_first#:#Um ein Opencast Video einbinden zu können, müssen sie erst ein InteractiveVideo Objekt erstellen.
