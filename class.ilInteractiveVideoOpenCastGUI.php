@@ -71,7 +71,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             $tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
             $opc_id = new ilHiddenInputGUI( 'opc_id');
             $option->addSubItem($opc_id);
-            $info_test = new ilNonEditableValueGUI(ilInteractiveVideoPlugin::getInstance()->txt('opc_selection_info'), 'opc_id_text');
+            $info_test = new ilNonEditableValueGUI('', 'opc_id_text');
             $info_test->setValue('');
             $option->addSubItem($info_test);
             $opc_url = new ilHiddenInputGUI('opc_url');
