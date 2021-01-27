@@ -3,4 +3,5 @@ opc_id#:#OpenCast Video Id
 opc_id_info#:#OpenCast Video Id
 opc_selection_info#:#OpenCast:
 opc_select_video#:#Select video
+opc_title#:#Title
 please_create_object_first#:#To use an OpenCast Video you have to create an InteractiveVideo object first.

@@ -54,6 +54,10 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $this->createCtrlFake($this->dic);
         $object = new ilInteractiveVideoOpenCast();
         $object->doReadVideoSource($obj_id);
+        $DIC->language()->toJSMap([
+            'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
+            'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title')
+            ], $DIC->ui()->mainTemplate());
 
         if(array_key_exists('ref_id', $_GET) && (int) $_GET['ref_id'] === 1){
             $info_test = new ilNonEditableValueGUI();
@@ -65,9 +69,11 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             $option->addSubItem($opc_inject_text);
         } else {
             $tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
-            $opc_id = new ilTextInputGUI(ilInteractiveVideoPlugin::getInstance()->txt('opc_id'), 'opc_id');
-            $opc_id->setInfo(ilInteractiveVideoPlugin::getInstance()->txt('opc_selection_info'));
+            $opc_id = new ilHiddenInputGUI( 'opc_id');
             $option->addSubItem($opc_id);
+            $info_test = new ilNonEditableValueGUI(ilInteractiveVideoPlugin::getInstance()->txt('opc_selection_info'), 'opc_id_text');
+            $info_test->setValue('');
+            $option->addSubItem($info_test);
             $opc_url = new ilHiddenInputGUI('opc_url');
             $option->addSubItem($opc_url);
         }

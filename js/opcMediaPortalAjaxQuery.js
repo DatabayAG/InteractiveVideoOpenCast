@@ -4,9 +4,9 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
     let pub = {}, pro = {};
 
     pub.addAction = function(){
-        let help_block = $('#opc_id').parent().find('.help-block');
+        let help_block = $('#opc_id_text');
         let help_text = help_block.html();
-        let action_text = 'Select';//$('#opc_inject_text').val();
+        let action_text = il.Language.txt('select_video');
         let action_link = help_text + ' <a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' + action_text + '</a><div class="opc_selected_title"></div>';
         help_block.html(action_link);
         $('#OpencastSelectionModal .ilTableNav').hide();
@@ -39,7 +39,7 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
 
     pro.addTitle = function(){
         let title = $('#opc_url').val();
-        $('.opc_selected_title').html(title);
+        $('.opc_selected_title').html(il.Language.txt('title') + ': ' + title);
     }
 
     pro.parseEventId = function(that){
@@ -64,7 +64,7 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
 
 }(il));
 $( document ).ready(function() {
-    il.opcMediaPortalAjaxQuery.addAction();
+    setTimeout(function(){  il.opcMediaPortalAjaxQuery.addAction(); }, 100);
 });
 
 
