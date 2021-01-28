@@ -50,7 +50,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 	{
 		global $tpl, $DIC;
 		$this->dic = $DIC;
-        $ctrl = $DIC->ctrl(); // FROM DIC
+        $ctrl = $DIC->ctrl();
         $this->createCtrlFake($this->dic);
         $object = new ilInteractiveVideoOpenCast();
         $object->doReadVideoSource($obj_id);
@@ -60,8 +60,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             ], $DIC->ui()->mainTemplate());
 
         if(array_key_exists('cmd', $_GET) && $_GET['cmd'] === 'create'){
-            $info_test = new ilNonEditableValueGUI();
-            $info_test->setInfo('<b>'. ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first') .'</b>');
+            $info_test = new ilNonEditableValueGUI('', 'oc_info_text');
+            $info_test->setValue(ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first'));
             $option->addSubItem($info_test);
 
             $opc_inject_text = new ilHiddenInputGUI('opc_id');
@@ -83,7 +83,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $modal = ilModalGUI::getInstance();
         $modal->setId("OpencastSelectionModal");
         $modal->setType(ilModalGUI::TYPE_LARGE);
-        $modal->setBody($this->getTable($DIC)->getHTML());
+        #$modal->setBody($this->getTable($DIC)->getHTML());
         $tpl_modal->setVariable('MODAL', $modal->getHTML());
 
         $this->dic->ui()->mainTemplate()->setVariable('WEBDAV_MODAL', $tpl_modal->get());
