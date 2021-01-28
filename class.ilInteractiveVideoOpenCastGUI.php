@@ -59,7 +59,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title')
             ], $DIC->ui()->mainTemplate());
 
-        if(array_key_exists('ref_id', $_GET) && (int) $_GET['ref_id'] === 1 || array_key_exists('cmd', $_GET) && (int) $_GET['cmd'] === 'create'){
+        if(array_key_exists('cmd', $_GET) && $_GET['cmd'] === 'create'){
             $info_test = new ilNonEditableValueGUI();
             $info_test->setInfo('<b>'. ilInteractiveVideoPlugin::getInstance()->txt('please_create_object_first') .'</b>');
             $option->addSubItem($info_test);
