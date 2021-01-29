@@ -83,7 +83,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $modal = ilModalGUI::getInstance();
         $modal->setId("OpencastSelectionModal");
         $modal->setType(ilModalGUI::TYPE_LARGE);
-        #$modal->setBody($this->getTable($DIC)->getHTML());
+        $modal->setBody($this->getTable($DIC)->getHTML());
         $tpl_modal->setVariable('MODAL', $modal->getHTML());
 
         $this->dic->ui()->mainTemplate()->setVariable('WEBDAV_MODAL', $tpl_modal->get());
