@@ -56,7 +56,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $object->doReadVideoSource($obj_id);
         $DIC->language()->toJSMap([
             'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
-            'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title')
+            'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title'),
+            'opc_insert' => ilInteractiveVideoPlugin::getInstance()->txt('opc_insert')
             ], $DIC->ui()->mainTemplate());
 
         if(array_key_exists('cmd', $_GET) && $_GET['cmd'] === 'create'){
