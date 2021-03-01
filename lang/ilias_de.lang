@@ -1,8 +1,8 @@
-opc#:#Opencast
-opc_id#:#Opencast Video Id
-opc_id_info#:#Opencast Video Id
-opc_selection_info#:#Opencast:
+opc#:#Switchcast
+opc_id#:#Switchcast Video Id
+opc_id_info#:#Switchcast Video Id
+opc_selection_info#:#Switchcast:
 opc_select_video#:#Video auswählen
-opc_insert#:#Video aus Opencast einfügen:
+opc_insert#:#Video aus Switchcast einfügen:
 opc_title#:#Titel
-please_create_object_first#:#Um ein Opencast Video nutzen zu können, müssen Sie erst ein Objekt «Interaktives Video» anlegen. Geben Sie dazu einen Titel ein und klicken Sie auf «Neues Interaktives Video anlegen».
+please_create_object_first#:#Um ein Switchcast Video nutzen zu können, müssen Sie erst ein Objekt «Interaktives Video» anlegen. Geben Sie dazu einen Titel ein und klicken Sie auf «Neues Interaktives Video anlegen».
