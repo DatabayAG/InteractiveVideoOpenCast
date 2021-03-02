@@ -29,9 +29,8 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
     }
 
     pro.addActionToRow = function(){
-        $('.ocpc_table_row').off('click');
-        $('.ocpc_table_row').on('click', function(event) {
-
+        $('.ocpc_table_row_selectable').off('click');
+        $('.ocpc_table_row_selectable').on('click', function(event) {
             pro.parseEventId($(this));
             event.preventDefault();
         });

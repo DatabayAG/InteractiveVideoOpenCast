@@ -188,7 +188,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     protected function getTable(ILIAS\DI\Container $dic) : VideoSearchTableGUI{
         $this->createCtrlFake($dic);
         $table =  new VideoSearchTableGUI($this->ilCtrlFake, self::CMD_INDEX, $dic, $this->command_url);
-        $table->setLimit(PHP_INT_MAX);
+        $table->setLimit(999999);
+        $table->initializeData();
 
         return $table;
     }
