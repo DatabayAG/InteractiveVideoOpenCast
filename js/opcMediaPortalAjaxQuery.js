@@ -19,9 +19,13 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         if(is_static){
             config = {backdrop: 'static', keyboard: false};
         }
-        $('#OpencastSelectionModal').modal(config, 'show');
-        $('.modal-body').css('overflow', 'auto')
-        pro.addActionToRow();
+        $.get( il.opcMediaPortalAjaxQueryURL, function( data ) {
+            $('.modal-body').html( data );
+            $('#OpencastSelectionModal').modal(config, 'show');
+            $('.modal-body').css('overflow', 'auto')
+            pro.addActionToRow();
+        });
+
     }
 
     pro.getSelectedVideoId = function(){
