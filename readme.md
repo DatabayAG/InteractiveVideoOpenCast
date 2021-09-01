@@ -1,8 +1,7 @@
-# Version is in development use at your own risk
-
 # OpenCast InteractiveVideo Plugin
 ILIAS OpenCast Plugin for Interactive Video Plugin
-Only compatible with InteractiveVideo version 2.0.26 and higher
+Only compatible with InteractiveVideo version 2.6.0 and higher or the '6_x' branch of the InteractiveVideo plugin
+This plugin need the OpenCast and OpenCastPageComponent plugin
 
 ## Installation Instructions
 1. Clone this repository to <ILIAS_DIRECTORY>/Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast
