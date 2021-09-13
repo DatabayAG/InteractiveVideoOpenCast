@@ -41,6 +41,11 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
      */
     protected $command_url;
 
+    /**
+     * @var string
+     */
+    protected $ajax_url;
+
 	/**
 	 * @param ilRadioOption $option
 	 * @param               $obj_id
@@ -84,8 +89,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $modal = ilModalGUI::getInstance();
         $modal->setId("OpencastSelectionModal");
         $modal->setType(ilModalGUI::TYPE_LARGE);
-        $modal->setBody($this->getTable($DIC)->getHTML());
         $tpl_modal->setVariable('MODAL', $modal->getHTML());
+        $tpl_modal->setVariable('AJAX_URL', $this->ajax_url);
 
         $this->dic->ui()->mainTemplate()->setVariable('WEBDAV_MODAL', $tpl_modal->get());
         $action_text = ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video');
@@ -101,6 +106,14 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
 		return $option;
 	}
+
+	public function getAjaxOpenCastTable(){
+	    global $DIC;
+        $tpl_json = ilInteractiveVideoPlugin::getInstance()->getTemplate('default/tpl.show_question.html', false, false);
+        $tpl_json->setVariable('JSON', $this->getTable($DIC)->getHTML());
+        $tpl_json->show("DEFAULT", false, true );
+        exit();
+    }
 
 	/**
 	 * @param ilPropertyFormGUI $form
@@ -309,5 +322,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $dic->ctrl()->setParameter($this, self::CUSTOM_CMD, self::CMD_APPLY_FILTER);
         $this->dic = $dic;
         $this->ilCtrlFake = $this->getIlCtrlTabFake($this->dic);
+        $this->ajax_url = $this->ilCtrlFake->getLinkTargetByClass(['ilRepositoryGUI', 'ilObjInteractiveVideoGUI'], 'getAjaxOpenCastTable','', true, false);
+
     }
 }

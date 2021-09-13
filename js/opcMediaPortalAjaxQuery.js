@@ -19,10 +19,24 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         if(is_static){
             config = {backdrop: 'static', keyboard: false};
         }
-        $('#OpencastSelectionModal').modal(config, 'show');
-        $('.modal-body').css('overflow', 'auto')
-        pro.addActionToRow();
+        pro.displayWaitBox();
+        $.get( il.opcMediaPortalAjaxQueryURL, function( data ) {
+            $('.modal-body').html( data );
+            $('#OpencastSelectionModal').modal(config, 'show');
+            $('.modal-body').css('overflow', 'auto')
+            pro.addActionToRow();
+            $('.openCastWaitBox').find('.ffmpeg_spinner').remove();
+        });
+
     }
+
+    pro.displayWaitBox = function()
+    {
+        if($('body').find('.openCastWaitBox').length === 0){
+            $('body').append('<div class="openCastWaitBox"></div>')
+        }
+        $('.openCastWaitBox').html('<div class="col-xs-12 ffmpeg_spinner" style="width: 100%;height: 100%;position: absolute;left: 40%;top: 40%;"><img src="Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/templates/images/spinner.svg"/></div>');
+    };
 
     pro.getSelectedVideoId = function(){
         return $('#opc_id').val();
