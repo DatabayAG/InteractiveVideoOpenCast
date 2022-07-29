@@ -1,8 +1,8 @@
-opc#:#SWITCHcast
-opc_id#:#SWITCHcast Video Id
-opc_id_info#:#SWITCHcast Video Id
-opc_selection_info#:#SWITCHcast:
+opc#:#Opencast
+opc_id#:#Opencast Video Id
+opc_id_info#:#Opencast Video Id
+opc_selection_info#:#Opencast:
 opc_select_video#:#Select video
-opc_insert#:#Insert SWITCHcast video:
+opc_insert#:#Insert Opencast video:
 opc_title#:#Title
-please_create_object_first#:#To use a SWITCHcast video, you must first create an «Interactive Video» object. To do so, specify a title and click «Add Interactive Video».
+please_create_object_first#:#To use a Opencast video, you must first create an «Interactive Video» object. To do so, specify a title and click «Add Interactive Video».
