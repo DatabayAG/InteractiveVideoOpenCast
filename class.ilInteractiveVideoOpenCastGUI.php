@@ -153,7 +153,11 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		$instance->doReadVideoSource($obj->getId());
         if($instance->getOpcId() !== self::OPC_DUMMY_ID) {
             $player->setVariable('PLAYER_ID', $player_id);
-            $url = $this->getVideoUrl($instance->getOpcId());
+            if (xoctConf::getConfig(xoctCONF::F_SIGN_DOWNLOAD_LINKS)) {
+                $url = xoctSecureLink::signPlayer($this->getVideoUrl($instance->getOpcId()));
+            } else {
+                $url = $this->getVideoUrl($instance->getOpcId());
+            }
             # $signed_url = xoctConf::getConfig(xoctConf::F_SIGN_DOWNLOAD_LINKS) ? xoctSecureLink::signDownload($url) : $url;
             $player->setVariable('OPC_URL', $url);
         }
