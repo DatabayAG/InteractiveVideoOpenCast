@@ -5,6 +5,7 @@ require_once 'Customizing/global/plugins/Services/COPage/PageComponent/OpencastP
 require_once 'Customizing/global/plugins/Services/Repository/RepositoryObject/OpenCast/vendor/autoload.php';
 
 use ILIAS\DI\Container;
+use srag\Plugins\Opencast\Model\Config\PluginConfig;
 
 /**
  * Class ilInteractiveVideoOpenCastGUI
@@ -153,7 +154,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 		$instance->doReadVideoSource($obj->getId());
         if($instance->getOpcId() !== self::OPC_DUMMY_ID) {
             $player->setVariable('PLAYER_ID', $player_id);
-            if (xoctConf::getConfig(xoctCONF::F_SIGN_DOWNLOAD_LINKS)) {
+            if (PluginConfig::getConfig(PluginConfig::F_SIGN_DOWNLOAD_LINKS)) {
                 $url = xoctSecureLink::signPlayer($this->getVideoUrl($instance->getOpcId()));
             } else {
                 $url = $this->getVideoUrl($instance->getOpcId());
