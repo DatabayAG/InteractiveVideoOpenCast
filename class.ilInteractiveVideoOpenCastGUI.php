@@ -270,11 +270,11 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
              */
             public function getLinkTargetByClass(
                 $a_class,
-                $a_cmd = "",
-                $a_anchor = "",
-                $a_asynch = false,
-                $xml_style = true
-            ) {
+                ?string $a_cmd = null,
+                ?string $a_anchor = null,
+                bool $is_asynch = false,
+                bool $has_xml_style = false
+            ): string {
 
                 $this->oldIlCtrl->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_plugin_ctrl', ilInteractiveVideoOpenCastGUI::class);
                 $this->oldIlCtrl->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_source_id', 'opc');
