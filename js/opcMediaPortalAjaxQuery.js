@@ -21,14 +21,16 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         }
         pro.displayWaitBox();
         let url = document.querySelector('#iv-opc-url').getAttribute("data-iv-opencast-url");
-        $.get( url, function( data ) {
+        console.log(url)
+        window.location.replace(url)
+       /* $.get( url, function( data ) {
             $('.modal-body').html( data );
             $('#OpencastSelectionModal').modal(config, 'show');
             $('.modal-body').css('overflow', 'auto')
             pro.addActionToRow();
             $('.openCastWaitBox').find('.ffmpeg_spinner').remove();
         });
-
+*/
     }
 
     pro.displayWaitBox = function()
@@ -41,6 +43,11 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
 
     pro.getSelectedVideoId = function(){
         return $('#opc_id').val();
+    }
+
+    pro.setSelectedVideoId = function(opc_id){
+        console.log(opc_id)
+        return $('#opc_id').val(opc_id);
     }
 
     pro.addActionToRow = function(){
@@ -66,7 +73,7 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         }
     }
 
-    pro.addEventIdToForm = function(event_id, title){
+    pub.addEventIdToForm = function(event_id, title){
         $('#opc_id').val(event_id);
         $('#opc_url').val(title);
         pro.addTitle();

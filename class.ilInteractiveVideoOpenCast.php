@@ -135,6 +135,12 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
         $this->saveData($obj_id, $opc_id, $opc_url);
     }
 
+    public function manualUpdateOfVideoSource($obj_id, $opc_id, $opc_url)
+    {
+        $this->removeEntryFromTable($obj_id);
+        $this->saveData($obj_id, $opc_id, $opc_url);
+    }
+
     /**
      * @param $obj_id
      * @param $opc_id
