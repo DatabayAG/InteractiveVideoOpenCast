@@ -116,6 +116,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
                 $opencast->manualUpdateOfVideoSource($obj_id, $event_id, $opc_url);
                 $this->addConfigStructure();
                 $this->removeConfigStructure();
+                $dic->ui()->mainTemplate()->setOnScreenMessage("success", $dic->language()->txt('saved_successfully'), true);
                 $dic->ctrl()->setParameterByClass('ilObjInteractiveVideoGUI', "custom_video_id", $event_id);
                 $dic->ctrl()->redirect(new ilObjInteractiveVideoGUI(), 'edit');
             }
