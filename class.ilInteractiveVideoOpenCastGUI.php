@@ -8,8 +8,6 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 {
     public const CMD_CANCEL = "cancel";
     public const CMD_CREATE = "create";
-    public const CMD_EDIT = "CustomVideoSource.edit";
-    public const CMD_INSERT = "CustomVideoSource.insert";
     public const PROP_EVENT_ID = 'event_id';
 
     public const CMD_UPDATE = "update";
@@ -19,12 +17,26 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     public const CMD_INDEX = 'index';
     public const OPC_DUMMY_ID = 'opc_dummy';
     public const XVID_ID_URL = 'xvid_id_url';
+    public const CUSTOM_SOURCE_TAB_ID = 'custom_source_opc';
     public const XVID_OPC_URL = 'opc_url';
+    private \srag\Plugins\Opencast\Container\Container $container;
+    private ilOpenCastPlugin $opencast_plugin;
+    private ilOpencastPageComponentPlugin $plugin;
 
     protected ?Container $dic = null;
 
     protected string $ajax_url;
     private \ilGlobalTemplateInterface $main_tpl;
+
+    public function __construct()
+    {
+        global $DIC;
+        $this->main_tpl = $DIC->ui()->mainTemplate();
+        $this->container = Init::init($this->getDIC());
+        $this->opencast_plugin = $this->container->plugin();
+        $this->plugin = ilOpencastPageComponentPlugin::getInstance();
+    }
+
     /**
      * @param $option
      * @param $obj_id
@@ -37,10 +49,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     {
         global $tpl;
         $this->dic = $this->getDIC();
-        $ctrl = $this->dic->ctrl();
-
         $this->addConfigStructure();
-
 
         $object = new ilInteractiveVideoOpenCast();
         $object->doReadVideoSource($obj_id);
@@ -77,10 +86,12 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $modal->setType(ilModalGUI::TYPE_LARGE);
         $tpl_modal->setVariable('MODAL', $modal->getHTML());
 
+        $this->addConfigStructure();
         $this->ajax_url = $this->dic->ctrl()->getLinkTargetByClass(['ilRepositoryGUI', 'ilObjInteractiveVideoGUI'], 'addVideoSelectionForm', '', false, false);
-       $tpl_modal->setVariable('OPENCAST_AJAX_URL', $this->ajax_url);
+        $current_url = new URI(ILIAS_HTTP_PATH . '/' .  $this->dic->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
+        $tpl_modal->setVariable('OPENCAST_AJAX_URL', $current_url);
 
-       $this->dic->ui()->mainTemplate()->setVariable('WEBDAV_MODAL', $tpl_modal->get());
+        $this->dic->ui()->mainTemplate()->setVariable('WEBDAV_MODAL', $tpl_modal->get());
         $action_text = ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video');
         $opc_inject_text = new ilHiddenInputGUI('opc_inject_text');
         $opc_inject_text->setValue($action_text);
@@ -90,7 +101,6 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     }
 
     public function update() {
-        global $DIC;
         $dic = $this->getDIC();
         $get = $dic->http()->wrapper()->query();
         if($get->has(VideoSearchTableGUI::GET_PARAM_EVENT_ID)) {
@@ -99,21 +109,18 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             if($get->has('obj_id')) {
                 $obj_id = $get->retrieve('obj_id', $dic->refinery()->kindlyTo()->int());;
             }
-            if($get->has('ref_id')) {
-                $ref_id = $get->retrieve('ref_id', $dic->refinery()->kindlyTo()->int());;
-            }
             $event = xoctInternalAPI::getInstance()->events()->read($event_id);
             $opc_url = $event->getTitle();
             if($event_id && $obj_id && $opc_url) {
                 $opencast = new ilInteractiveVideoOpenCast();
                 $opencast->manualUpdateOfVideoSource($obj_id, $event_id, $opc_url);
+                $this->addConfigStructure();
+                $this->removeConfigStructure();
+                $dic->ctrl()->setParameterByClass('ilObjInteractiveVideoGUI', "custom_video_id", $event_id);
+                $dic->ctrl()->redirect(new ilObjInteractiveVideoGUI(), 'edit');
             }
-
         }
-        $this->addConfigStructure();
-        $DIC->ctrl()->setParameterByClass('ilObjInteractiveVideoGUI', "custom_video_id", $event_id);
-
-        $DIC->ctrl()->redirect(new ilObjInteractiveVideoGUI(), 'editProperties');
+        $this->getTable();
     }
 
     /**
@@ -174,6 +181,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     public function getEditFormCustomValues(array &$a_values, $obj)
     {
         $instance = new ilInteractiveVideoOpenCast();
+        $this->addTab($obj);
         $instance->doReadVideoSource($obj->getId());
 
         $a_values[ilInteractiveVideoOpenCast::FORM_ID_FIELD] = '';
@@ -184,6 +192,20 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $a_values[ilInteractiveVideoOpenCast::FORM_URL_FIELD] = $instance->getOpcUrl();
     }
 
+    private function addTab(?ilObjInteractiveVideo $obj, bool $active = false) {
+        global $DIC;
+
+        if($active === true || ($obj !== null && $obj->getSourceId() === 'opc')) {
+            $current_url = new URI(ILIAS_HTTP_PATH . '/' .  $this->dic->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
+            $DIC->tabs()->addSubTab(self::CUSTOM_SOURCE_TAB_ID,  ilInteractiveVideoPlugin::getInstance()->txt('opc'), $current_url);
+
+            if($active) {
+                $DIC->tabs()->activateTab('editProperties');
+                $DIC->tabs()->activateSubTab(self::CUSTOM_SOURCE_TAB_ID);
+            }
+        }
+
+    }
     /**
      * @return boolean
      */
@@ -196,17 +218,18 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     {
         global $DIC;
         $form = new ilPropertyFormGUI();
-        $this->plugin = ilOpencastPageComponentPlugin::getInstance();
+        $gui = new ilObjInteractiveVideoGUI();
+
+        $gui->addSettingsTabs();
+        $this->addTab(null, true);
+
         $this->addConfigStructure();
         $form->setTitle(ilInteractiveVideoPlugin::getInstance()->txt("opc"));
 
-        $this->main_tpl = $DIC->ui()->mainTemplate();
-        $this->container = Init::init($this->getDIC());
-        $this->opencast_plugin = $this->container->plugin();
         $ui = $this->container->uiIntegration(ilInteractiveVideoPlugin::getInstance());
         $DIC->ctrl()->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_plugin_ctrl', ilInteractiveVideoOpenCastGUI::class);
-        $current_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass(ilObjInteractiveVideoGUI::class, self::CMD_INSERT));
-        $target_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass(ilObjInteractiveVideoGUI::class, self::CMD_UPDATE));
+        $current_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
+        $target_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
 
         $a = $DIC->ui()->renderer()->render(
             $ui->mine()->asDataTableWithFilters(
@@ -254,7 +277,6 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
     public function getConfigForm($form)
     {
-        // TODO: Implement getConfigForm() method.
     }
 
     protected function addConfigStructure()
@@ -262,5 +284,11 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         global $DIC;
         $DIC->ctrl()->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_plugin_ctrl', ilInteractiveVideoOpenCastGUI::class);
         $DIC->ctrl()->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_source_id', 'opc');
+    }
+
+    protected function removeConfigStructure()
+    {
+        global $DIC;
+        $DIC->ctrl()->clearParameters(new ilObjInteractiveVideoGUI());
     }
 }

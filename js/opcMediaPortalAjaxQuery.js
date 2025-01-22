@@ -7,7 +7,11 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         let help_block = $('#opc_id_text');
         let help_text = help_block.html();
         let action_text = il.Language.txt('select_video');
-        let action_link =  il.Language.txt('opc_insert') + ' ' + help_text + ' <a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' + action_text + '</a><div class="opc_selected_title"></div>';
+        let action_link =  il.Language.txt('opc_insert') + ' ' +
+            help_text +
+            '<a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' +
+            action_text + '</a>' +
+            '<div class="opc_selected_title" id="opc_selected_title""></div>';
         help_block.html(action_link);
         $('#OpencastSelectionModal .ilTableNav').hide();
         pro.addTitle();
@@ -21,16 +25,7 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         }
         pro.displayWaitBox();
         let url = document.querySelector('#iv-opc-url').getAttribute("data-iv-opencast-url");
-        console.log(url)
         window.location.replace(url)
-       /* $.get( url, function( data ) {
-            $('.modal-body').html( data );
-            $('#OpencastSelectionModal').modal(config, 'show');
-            $('.modal-body').css('overflow', 'auto')
-            pro.addActionToRow();
-            $('.openCastWaitBox').find('.ffmpeg_spinner').remove();
-        });
-*/
     }
 
     pro.displayWaitBox = function()
