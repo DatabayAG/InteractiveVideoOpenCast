@@ -1,0 +1,54 @@
+<style>
+    .column {
+        float: left;
+        width: 15.33%;
+    }
+
+    .opc_below, .opc_below_no_space{
+        clear: both;
+    }
+
+    .opc_below{
+        padding-top: 45px;
+    }
+
+    .field_title{
+        color: #505050;
+    }
+    h1{
+        padding-bottom: 15px;
+    }
+
+    .opc_row {
+        padding-bottom: 15px;
+    }
+    .image_preview {
+        width:220px;
+        height:123px;
+        float:left;
+    }
+</style>
+<!-- BEGIN found_details -->
+<h1>{CURRENT_TITLE}</h1>
+<div id="opc_container">
+    <div class="column">
+        <!-- BEGIN image_preview -->
+        <img class="image_preview" src="{OPC_PREVIEW}">
+        <!-- END image_preview -->
+    </div>
+    <div class="column">
+        <h4 class="opc_row"><b>{VIDEO_TITLE}</b></h4>
+        <div class="opc_row"><span class="field_title">{DATE_TXT} </span>{DATE} <br></div>
+        <div class="opc_row"><span class="field_title">{PRESENTER_TXT} </span>{PRESENTER}</div>
+    </div>
+    <div class="column">
+        <h4 class="opc_row"><b>&emsp;</b></h4>
+        <div class="opc_row"><span class="field_title">{SERIE_TXT} </span>{SERIE}</div>
+    </div>
+</div>
+<h1 class="opc_below">{TITLE_FOUND_DETAILS}</h1>
+<!-- END found_details -->
+
+<!-- BEGIN no_text -->
+<h1 class="opc_below_no_space">{TITLE_NO_DETAILS}</h1>
+<!-- END no_text -->

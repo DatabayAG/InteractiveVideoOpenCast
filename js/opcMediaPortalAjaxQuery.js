@@ -4,14 +4,13 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
     let pub = {}, pro = {};
 
     pub.addAction = function(){
+        console.log('add ac tion')
         let help_block = $('#opc_id_text');
         let help_text = help_block.html();
         let action_text = il.Language.txt('select_video');
-        let action_link =  il.Language.txt('opc_insert') + ' ' +
-            help_text +
+        let action_link =  '<div class="opc_selected_title" id="opc_selected_title""></div>' +
             '<a onclick="il.opcMediaPortalAjaxQuery.openSelectionModal()">' +
-            action_text + '</a>' +
-            '<div class="opc_selected_title" id="opc_selected_title""></div>';
+            action_text + '</a>';
         help_block.html(action_link);
         $('#OpencastSelectionModal .ilTableNav').hide();
         pro.addTitle();

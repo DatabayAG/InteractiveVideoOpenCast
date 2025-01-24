@@ -3,6 +3,8 @@
 use ILIAS\DI\Container;
 use srag\Plugins\Opencast\Container\Init;
 use ILIAS\Data\URI;
+use srag\Plugins\Opencast\Model\Event\EventAPIRepository;
+use srag\Plugins\Opencast\Model\Series\SeriesAPIRepository;
 
 class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 {
@@ -225,29 +227,80 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $this->addTab(null, true);
 
         $this->addConfigStructure();
-        $form->setTitle(ilInteractiveVideoPlugin::getInstance()->txt("opc"));
 
+        $dic = $this->getDIC();
+        $get = $dic->http()->wrapper()->query();
+        $custom_template = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.oc.custom.html', true, true);
+
+        if($get->has('obj_id') || $get->has('ref_id')) {
+            if($get->has('obj_id')) {
+                $obj_id = $get->retrieve('obj_id', $dic->refinery()->kindlyTo()->int());
+            }
+            if($get->has('ref_id')) {
+                $ref_id = $get->retrieve('ref_id', $dic->refinery()->kindlyTo()->int());
+                $obj_id = ilObject::_lookupObjectId($ref_id);
+            }
+
+            if($obj_id > 0) {
+                $instance	= new ilInteractiveVideoOpenCast();
+                $instance->doReadVideoSource($obj_id);
+                if($instance->getOpcId() !== 'opc_dummy') {
+                    $container = $this->container;
+                    $api_repository = $container->get(EventAPIRepository::class);
+                    $findById = $api_repository->find($instance->getOpcId());
+                    $img = $this->getVideoPreviewImag($instance->getOpcId());
+                    $series = $this->getSeriesName($instance->getOpcId());
+                    foreach($findById->getMetadata()->getFields() as $field) {
+                        $id = $field->getId();
+                        $txt = $field->getValue();
+
+                        switch ($id) {
+                            case 'title':
+                                $custom_template->setVariable('VIDEO_TITLE', $txt);
+                                break;
+                            case 'startDate':
+                                /* @var DateTimeImmutable $txt */
+                                $date =  $txt->format('d.m.Y H:i');
+                                $custom_template->setVariable('DATE', $date);
+                                break;
+                            case 'creator':
+                                if(is_array($txt) && count($txt) > 0) {
+                                    $custom_template->setVariable('PRESENTER', $txt[0]);
+                                }
+                                break;
+                        }
+                    }
+                    if($img !== '') {
+                        $custom_template->setVariable('OPC_PREVIEW', $img);
+                    }
+                    $custom_template->setVariable('SERIE', $series);
+                    $custom_template->setVariable('CURRENT_TITLE', ilInteractiveVideoPlugin::getInstance()->txt("opc_selection_current"));
+                    $custom_template->setVariable('DATE_TXT', ilInteractiveVideoPlugin::getInstance()->txt("date_txt"));
+                    $custom_template->setVariable('PRESENTER_TXT', ilInteractiveVideoPlugin::getInstance()->txt("presenter_txt"));
+                    $custom_template->setVariable('SERIE_TXT', ilInteractiveVideoPlugin::getInstance()->txt("serie_txt"));
+                    $custom_template->setVariable('TITLE_FOUND_DETAILS', ilInteractiveVideoPlugin::getInstance()->txt("opc_selection"));
+                } else {
+                    $custom_template->setVariable('TITLE_NO_DETAILS', ilInteractiveVideoPlugin::getInstance()->txt("opc_selection"));
+
+                }
+            }
+        }
+        $append_html = $custom_template->get();
         $ui = $this->container->uiIntegration(ilInteractiveVideoPlugin::getInstance());
         $DIC->ctrl()->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_plugin_ctrl', ilInteractiveVideoOpenCastGUI::class);
         $current_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
         $target_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
 
-        $a = $DIC->ui()->renderer()->render(
+        $opencast_content = $DIC->ui()->renderer()->render(
             $ui->mine()->asDataTableWithFilters(
                 $current_url,
                 $target_url,
                 self::PROP_EVENT_ID
             )
         );
-        $this->main_tpl->setContent($a);
+        $this->main_tpl->setContent($append_html . $opencast_content);
     }
 
-    /**
-     * @param string $event_id
-     * @return string
-     * @throws ilException
-     * @throws xoctException
-     */
     protected function getVideoUrl(string $event_id): string
     {
 
@@ -266,6 +319,51 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         }
         return '';
     }
+
+    /**
+     * @param string $event_id
+
+     */
+    protected function getVideoDetails(string $event_id)
+    {
+
+        $event = xoctInternalAPI::getInstance()->events()->read($event_id);
+        $download_dtos = $event->publications()->getDownloadDtos(); // sortiert nach Auflösung (descending)
+        if (empty($download_dtos)) {
+            throw new ilException('Video with id ' . $event_id . ' has no valid download url');
+        }
+        foreach ($download_dtos as $usage_type => $content) {
+            foreach ($content as $usage_id => $download_dtos) {
+                if($download_dtos !== null) {
+                    $first = $download_dtos[0]->getUrl();
+                    return $first;
+                }
+            }
+        }
+        return '';
+    }
+    protected function getVideoPreviewImag(string $event_id) : string
+    {
+        $event = xoctInternalAPI::getInstance()->events()->read($event_id);
+        $image = $event->publications()->getThumbnailUrl();
+        if($image !== '') {
+           return $image;
+        }
+        return '';
+    }
+
+    protected function getSeriesName(string $event_id) : string
+    {
+        $this->series_repository = $this->container->get(SeriesAPIRepository::class);
+        $event = xoctInternalAPI::getInstance()->events()->read($event_id);
+        $series_id = $event->getSeries();
+        $series_name = $this->series_repository->find($series_id)->getMetadata()->getField('title')->getValue();
+        if($series_name !== '') {
+            return $series_name;
+        }
+        return '';
+    }
+
 
     private function getDIC()
     {
