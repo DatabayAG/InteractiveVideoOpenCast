@@ -48,7 +48,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     {
         $instance = new ilInteractiveVideoOpenCast();
         $instance->doReadVideoSource($obj_id);
-        if ($instance->getOpcId() !== 'opc_dummy') {
+        if ($instance->getOpcId() !== 'opc_dummy' && $instance->getOpcId() !== '') {
             $container = $this->container;
             $api_repository = $container->get(EventAPIRepository::class);
             $findById = $api_repository->find($instance->getOpcId());
@@ -108,12 +108,21 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
         $object = new ilInteractiveVideoOpenCast();
         $object->doReadVideoSource($obj_id);
-        $this->dic->language()->toJSMap([
-            'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
-            'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title'),
-            'opc_insert' => ilInteractiveVideoPlugin::getInstance()->txt('opc_insert')
-            ], $this->dic->ui()->mainTemplate());
 
+
+        if($object->getOpcId() === self::OPC_DUMMY_ID || $object->getOpcId() === '') {
+            $this->dic->language()->toJSMap([
+                'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
+                'title' => ilInteractiveVideoPlugin::getInstance()->txt('no_oc_video_selected'),
+                'opc_insert' => ilInteractiveVideoPlugin::getInstance()->txt('opc_insert')
+            ], $this->dic->ui()->mainTemplate());
+        } else {
+            $this->dic->language()->toJSMap([
+                'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
+                'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title'),
+                'opc_insert' => ilInteractiveVideoPlugin::getInstance()->txt('opc_insert')
+            ], $this->dic->ui()->mainTemplate());
+        }
         $get = $this->dic->http()->wrapper()->query();
         if($get->has('cmd') && $get->retrieve('cmd', $this->dic->refinery()->kindlyTo()->string()) === 'create') {
             $info_test = new ilNonEditableValueGUI('', 'oc_info_text');
@@ -123,6 +132,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             $opc_inject_text = new ilHiddenInputGUI('opc_id');
             $opc_inject_text->setValue(self::OPC_DUMMY_ID);
             $option->addSubItem($opc_inject_text);
+
         } else {
             $tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
             $opc_id = new ilHiddenInputGUI('opc_id');
