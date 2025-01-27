@@ -4,7 +4,6 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
     let pub = {}, pro = {};
 
     pub.addAction = function(){
-        console.log('add ac tion')
         let help_block = $('#opc_id_text');
         let help_text = help_block.html();
         let action_text = il.Language.txt('select_video');
@@ -14,6 +13,7 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         help_block.html(action_link);
         $('#OpencastSelectionModal .ilTableNav').hide();
         pro.addTitle();
+        pub.addActionToSubTab();
     }
 
     pub.openSelectionModal = function(is_static){
@@ -49,6 +49,13 @@ il.opcMediaPortalAjaxQuery = (function (scope) {
         $('.il-std-item-container').on('click', function(event) {
             pro.parseEventId($(this));
             event.preventDefault();
+        });
+    }
+
+    pub.addActionToSubTab = function(){
+        $('#subtab_custom_source_opc').off('click');
+        $('#subtab_custom_source_opc').on('click', function(event) {
+            pro.displayWaitBox();
         });
     }
 
