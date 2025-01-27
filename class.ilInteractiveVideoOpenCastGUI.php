@@ -110,7 +110,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $object->doReadVideoSource($obj_id);
 
 
-        if($object->getOpcId() === self::OPC_DUMMY_ID || $object->getOpcId() === '') {
+        if($object->getOpcId() === null || $object->getOpcId() === self::OPC_DUMMY_ID || $object->getOpcId() === '') {
             $this->dic->language()->toJSMap([
                 'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
                 'title' => ilInteractiveVideoPlugin::getInstance()->txt('no_oc_video_selected'),
