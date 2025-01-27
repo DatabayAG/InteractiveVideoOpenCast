@@ -253,7 +253,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
         if($active === true || ($obj !== null && $obj->getSourceId() === 'opc')) {
             $current_url = new URI(ILIAS_HTTP_PATH . '/' .  $this->dic->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
-            $DIC->tabs()->addSubTab(self::CUSTOM_SOURCE_TAB_ID,  ilInteractiveVideoPlugin::getInstance()->txt('opc'), $current_url);
+            $DIC->tabs()->addSubTab(self::CUSTOM_SOURCE_TAB_ID,  ilInteractiveVideoPlugin::getInstance()->txt('opc_video'), $current_url);
 
             if($active) {
                 $DIC->tabs()->activateTab('editProperties');
@@ -280,7 +280,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $get = $dic->http()->wrapper()->query();
         $custom_template = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.oc.custom.html', true, true);
         $this->addConfigStructure();
-        
+
         if($get->has('obj_id') || $get->has('ref_id')) {
             if($get->has('obj_id')) {
                 $obj_id = $get->retrieve('obj_id', $dic->refinery()->kindlyTo()->int());
