@@ -232,6 +232,8 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
     public function getTable(): void
     {
+        global $DIC;
+        $DIC->tabs()->addSubTab('editProperties',  $DIC->language()->txt('settings'), $DIC->ctrl()->getLinkTarget(new ilObjInteractiveVideoGUI(), 'editProperties'));
         $this->addTab(null, true);
         $dic = $this->getDIC();
         $get = $dic->http()->wrapper()->query();
