@@ -73,6 +73,16 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
         }
     }
 
+    public function getEventIdFromObjectId($obj_id)
+    {
+        global $ilDB;
+        $result = $ilDB->query('SELECT opc_id FROM ' . self::TABLE_NAME . ' WHERE obj_id = ' . $ilDB->quote($obj_id, 'integer'));
+        $row = $ilDB->fetchAssoc($result);
+        if(isset($row['opc_id'])) {
+            return $row['opc_id'];
+        }
+    }
+
     /**
      * @param $obj_id
      */
