@@ -3,7 +3,6 @@
 use ILIAS\DI\Container;
 use srag\Plugins\Opencast\Container\Init;
 use ILIAS\Data\URI;
-use srag\Plugins\Opencast\Model\Event\EventAPIRepository;
 use srag\Plugins\Opencast\Model\Series\SeriesAPIRepository;
 use srag\Plugins\Opencast\UI\Integration\Events;
 
@@ -238,6 +237,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $get = $dic->http()->wrapper()->query();
         $this->addConfigStructure();
         $content = '';
+        $obj_id = 0;
 
         if($get->has('obj_id') || $get->has('ref_id')) {
             if($get->has('obj_id')) {
@@ -264,18 +264,18 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
                 self::PROP_EVENT_ID
             )
         );
-        //asItemFromEventId
+
         $this->main_tpl->setContent($content . $opencast_content);
     }
 
-    protected function readAndAppendInfoBoxStructure($obj_id)
+    protected function readAndAppendInfoBoxStructure($obj_id) : string
     {
         global $DIC;
         $instance = new ilInteractiveVideoOpenCast();
         $instance->doReadVideoSource($obj_id);
 
         if ($instance->getOpcId() !== 'opc_dummy' && $instance->getOpcId() !== '') {
-            $opencast_container = \srag\Plugins\Opencast\Container\Init::init();
+            $opencast_container = Init::init();
             $event = new Events($DIC->ui()->factory(), $opencast_container);
             $iv_opencast = new ilInteractiveVideoOpenCast();
             $event_id = $iv_opencast->getEventIdFromObjectId($obj_id);
