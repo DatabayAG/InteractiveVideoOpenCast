@@ -291,6 +291,6 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
 
     public function hasOwnPlayer()
     {
-        return false;
+        return true;
     }
 }

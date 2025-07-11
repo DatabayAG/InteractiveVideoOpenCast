@@ -267,7 +267,21 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             )
         );
 
-        $this->main_tpl->setContent($content . $opencast_content);
+        $custom_template = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.oc.custom.html', true, true);
+
+        $iv_opencast = new ilInteractiveVideoOpenCast();
+        $event_id = $iv_opencast->getEventIdFromObjectId($obj_id);
+        if($event_id !== 'opc_dummy') {
+            $custom_template->setVariable('CURRENT_TITLE',
+                ilInteractiveVideoPlugin::getInstance()->txt("opc_selection_current"));
+        }
+
+        $custom_template->setVariable('SELECTED_VIDEO', $content);
+        $custom_template->setVariable('TITLE_FOUND_DETAILS',
+            ilInteractiveVideoPlugin::getInstance()->txt("opc_selection"));
+
+        $append_html = $custom_template->get();
+        $this->main_tpl->setContent($append_html . $opencast_content);
     }
 
     protected function readAndAppendInfoBoxStructure($obj_id) : string
