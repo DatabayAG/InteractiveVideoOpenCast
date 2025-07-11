@@ -210,7 +210,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
     private function addTab(?ilObjInteractiveVideo $obj, bool $active = false) {
         global $DIC;
-
+        $DIC->ctrl()->setParameter(new ilObjInteractiveVideoGUI(), 'xvid_plugin_ctrl', ilInteractiveVideoOpenCastGUI::class);
         if($active === true || ($obj !== null && $obj->getSourceId() === 'opc')) {
             $current_url = new URI(ILIAS_HTTP_PATH . '/' .  $this->dic->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjInteractiveVideoGUI::class], 'update'));
             $DIC->tabs()->addSubTab(self::CUSTOM_SOURCE_TAB_ID,  ilInteractiveVideoPlugin::getInstance()->txt('opc_video'), $current_url);
