@@ -1,34 +1,41 @@
 <style>
-    #oc_info_text, #opc_id_text{
+    #oc_info_text, #opc_id_text {
         display: block;
         margin-left: -33%;
         width: 100% !important;
         text-align: left;
     }
-    #il_prop_cont_opc_id_text .il_non_editable_value{
-        cursor:default;
+
+    #il_prop_cont_opc_id_text .il_non_editable_value {
+        cursor: default;
     }
-    #il_prop_cont_oc_info_text > label{
-        cursor:default;
+
+    #il_prop_cont_oc_info_text > label {
+        cursor: default;
     }
+
     tr.ocpc_table_row_selectable:hover {
         background-color: #557196 !important;
     }
+
     .il-std-item-container {
         cursor: pointer;
     }
-    .ilTableFilterSec{
+
+    .ilTableFilterSec {
         display: block !important;
     }
-    .ilTableFilterActivator{
+
+    .ilTableFilterActivator {
         display: none !important;
     }
+
     .ilFormFooter {
         background-color: transparent !important;
     }
 </style>
 <script>
-   // var opcMediaPortalAjaxQueryURL = "{OPENCAST_AJAX_URL}";
+  // var opcMediaPortalAjaxQueryURL = "{OPENCAST_AJAX_URL}";
 </script>
-<div id="iv-opc-url" data-iv-opencast-url="{OPENCAST_AJAX_URL}"></div>
+<div data-iv-opencast-url="{OPENCAST_AJAX_URL}" id="iv-opc-url"></div>
 {MODAL}

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/interface.ilInteractiveVideoSource.php';
+
 /**
  * Class ilInteractiveVideoOpenCast
  */
@@ -57,56 +58,58 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     }
 
     /**
-     * @param int $obj_id
-     * @return array
-     */
-    public function doReadVideoSource($obj_id)
-    {
-        global $ilDB;
-        $result = $ilDB->query('SELECT opc_id, opc_url FROM ' . self::TABLE_NAME . ' WHERE obj_id = ' . $ilDB->quote($obj_id, 'integer'));
-        $row = $ilDB->fetchAssoc($result);
-        if(isset($row['opc_id'])) {
-            $this->setopcId($row['opc_id']);
-        }
-        if(isset($row['opc_url'])) {
-            $this->setopcUrl($row['opc_url']);
-        }
-    }
-
-    public function getEventIdFromObjectId($obj_id)
-    {
-        global $ilDB;
-        $result = $ilDB->query('SELECT opc_id FROM ' . self::TABLE_NAME . ' WHERE obj_id = ' . $ilDB->quote($obj_id, 'integer'));
-        $row = $ilDB->fetchAssoc($result);
-        if(isset($row['opc_id'])) {
-            return $row['opc_id'];
-        }
-    }
-
-    /**
      * @param $obj_id
      */
-    public function doDeleteVideoSource($obj_id)
+    public function doUpdateVideoSource($obj_id)
     {
-        $this->beforeDeleteVideoSource($obj_id);
-    }
+        global $DIC;
+        $post = $DIC->http()->wrapper()->post();
+        if ($post->has('opc_id')) {
+            $opc_id = $post->retrieve('opc_id', $DIC->refinery()->kindlyTo()->string());
+            if ($post->has('opc_url')) {
+                $opc_url = $post->retrieve('opc_url', $DIC->refinery()->kindlyTo()->string());
+            } else {
+                $opc_url = '';
+            }
 
-    /**
-     * @param $original_obj_id
-     * @param $new_obj_id
-     */
-    public function doCloneVideoSource($original_obj_id, $new_obj_id)
-    {
-        $this->doReadVideoSource($original_obj_id);
-        $this->saveData($new_obj_id, $this->getOpcId(), $this->getOpcUrl());
-    }
-
-    /**
-     * @param $obj_id
-     */
-    public function beforeDeleteVideoSource($obj_id)
-    {
+        } else {
+            $opc_id = $this->getOpcId();
+            $opc_url = $this->getOpcUrl();
+        }
         $this->removeEntryFromTable($obj_id);
+        $this->saveData($obj_id, $opc_id, $opc_url);
+    }
+
+    /**
+     * @return string
+     */
+    public function getOpcId()
+    {
+        return $this->opc_id;
+    }
+
+    /**
+     * @param string $opc_id
+     */
+    public function setopcId(string $opc_id)
+    {
+        $this->opc_id = $opc_id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOpcUrl()
+    {
+        return $this->opc_url;
+    }
+
+    /**
+     * @param string $opc_url
+     */
+    public function setopcUrl(string $opc_url)
+    {
+        $this->opc_url = $opc_url;
     }
 
     /**
@@ -124,35 +127,6 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
 
     /**
      * @param $obj_id
-     */
-    public function doUpdateVideoSource($obj_id)
-    {
-        global $DIC;
-        $post = $DIC->http()->wrapper()->post();
-        if($post->has('opc_id')) {
-            $opc_id = $post->retrieve('opc_id', $DIC->refinery()->kindlyTo()->string());
-            if($post->has('opc_url')) {
-                $opc_url = $post->retrieve('opc_url', $DIC->refinery()->kindlyTo()->string());
-            } else {
-                $opc_url = '';
-            }
-
-        } else {
-            $opc_id = $this->getOpcId();
-            $opc_url = $this->getOpcUrl();
-        }
-        $this->removeEntryFromTable($obj_id);
-        $this->saveData($obj_id, $opc_id, $opc_url);
-    }
-
-    public function manualUpdateOfVideoSource($obj_id, $opc_id, $opc_url)
-    {
-        $this->removeEntryFromTable($obj_id);
-        $this->saveData($obj_id, $opc_id, $opc_url);
-    }
-
-    /**
-     * @param $obj_id
      * @param $opc_id
      * @param $opc_url
      */
@@ -162,11 +136,72 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
         $ilDB->insert(
             self::TABLE_NAME,
             array(
-                'obj_id'     => array('integer', $obj_id),
-                'opc_id'     => array('text', $opc_id),
-                'opc_url'    => array('text', $opc_url)
+                'obj_id' => array('integer', $obj_id),
+                'opc_id' => array('text', $opc_id),
+                'opc_url' => array('text', $opc_url)
             )
         );
+    }
+
+    public function getEventIdFromObjectId($obj_id)
+    {
+        global $ilDB;
+        $result = $ilDB->query('SELECT opc_id FROM ' . self::TABLE_NAME . ' WHERE obj_id = ' . $ilDB->quote($obj_id,
+                'integer'));
+        $row = $ilDB->fetchAssoc($result);
+        if (isset($row['opc_id'])) {
+            return $row['opc_id'];
+        }
+    }
+
+    /**
+     * @param $obj_id
+     */
+    public function doDeleteVideoSource($obj_id)
+    {
+        $this->beforeDeleteVideoSource($obj_id);
+    }
+
+    /**
+     * @param $obj_id
+     */
+    public function beforeDeleteVideoSource($obj_id)
+    {
+        $this->removeEntryFromTable($obj_id);
+    }
+
+    /**
+     * @param $original_obj_id
+     * @param $new_obj_id
+     */
+    public function doCloneVideoSource($original_obj_id, $new_obj_id)
+    {
+        $this->doReadVideoSource($original_obj_id);
+        $this->saveData($new_obj_id, $this->getOpcId(), $this->getOpcUrl());
+    }
+
+    /**
+     * @param int $obj_id
+     * @return array
+     */
+    public function doReadVideoSource($obj_id)
+    {
+        global $ilDB;
+        $result = $ilDB->query('SELECT opc_id, opc_url FROM ' . self::TABLE_NAME . ' WHERE obj_id = ' . $ilDB->quote($obj_id,
+                'integer'));
+        $row = $ilDB->fetchAssoc($result);
+        if (isset($row['opc_id'])) {
+            $this->setopcId($row['opc_id']);
+        }
+        if (isset($row['opc_url'])) {
+            $this->setopcUrl($row['opc_url']);
+        }
+    }
+
+    public function manualUpdateOfVideoSource($obj_id, $opc_id, $opc_url)
+    {
+        $this->removeEntryFromTable($obj_id);
+        $this->saveData($obj_id, $opc_id, $opc_url);
     }
 
     /**
@@ -228,41 +263,9 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     }
 
     /**
-     * @return string
-     */
-    public function getOpcId()
-    {
-        return $this->opc_id;
-    }
-
-    /**
-     * @param string $opc_id
-     */
-    public function setopcId(string $opc_id)
-    {
-        $this->opc_id = $opc_id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getOpcUrl()
-    {
-        return $this->opc_url;
-    }
-
-    /**
-     * @param string $opc_url
-     */
-    public function setopcUrl(string $opc_url)
-    {
-        $this->opc_url = $opc_url;
-    }
-
-    /**
-     * @param int $obj_id
+     * @param int         $obj_id
      * @param ilXmlWriter $xml_writer
-     * @param string $export_path
+     * @param string      $export_path
      */
     public function doExportVideoSource($obj_id, $xml_writer, $export_path)
     {

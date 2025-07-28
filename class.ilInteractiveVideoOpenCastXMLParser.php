@@ -12,9 +12,8 @@ class ilInteractiveVideoOpenCastXMLParser extends ilInteractiveVideoXMLParser
      */
     protected $opc_obj;
 
-
     /**
-     * @param  $opencast_obj
+     * @param                      $opencast_obj
      * @param                      $xmlFile
      */
     public function __construct($opencast_obj, $xmlFile)
@@ -25,12 +24,30 @@ class ilInteractiveVideoOpenCastXMLParser extends ilInteractiveVideoXMLParser
 
     /**
      * @param $xmlParser
+     */
+    public function setHandlers($xmlParser) : void
+    {
+        xml_set_object($xmlParser, $this);
+        xml_set_element_handler($xmlParser, 'handlerBeginTag', 'handlerEndTag');
+        xml_set_character_data_handler($xmlParser, 'handlerCharacterData');
+    }
+
+    private function fetchAttribute($attributes, $name)
+    {
+        if (isset($attributes[$name])) {
+            return $attributes[$name];
+        }
+        return null;
+    }
+
+    /**
+     * @param $xmlParser
      * @param $tagName
      * @param $tagAttributes
      */
-    public function handlerBeginTag($xmlParser, $tagName, $tagAttributes): void
+    public function handlerBeginTag($xmlParser, $tagName, $tagAttributes) : void
     {
-        switch($tagName) {
+        switch ($tagName) {
             case 'opcId':
             case 'opcURL':
             case 'VideoSourceObject':
@@ -43,9 +60,9 @@ class ilInteractiveVideoOpenCastXMLParser extends ilInteractiveVideoXMLParser
      * @param $xmlParser
      * @param $tagName
      */
-    public function handlerEndTag($xmlParser, $tagName): void
+    public function handlerEndTag($xmlParser, $tagName) : void
     {
-        switch($tagName) {
+        switch ($tagName) {
             case 'opcId':
                 $this->opc_obj->setopcId(trim($this->cdata));
                 break;
@@ -57,24 +74,6 @@ class ilInteractiveVideoOpenCastXMLParser extends ilInteractiveVideoXMLParser
                 parent::setHandlers($xmlParser);
                 break;
         }
-    }
-
-    private function fetchAttribute($attributes, $name)
-    {
-        if(isset($attributes[$name])) {
-            return $attributes[$name];
-        }
-        return null;
-    }
-
-    /**
-     * @param $xmlParser
-     */
-    public function setHandlers($xmlParser): void
-    {
-        xml_set_object($xmlParser, $this);
-        xml_set_element_handler($xmlParser, 'handlerBeginTag', 'handlerEndTag');
-        xml_set_character_data_handler($xmlParser, 'handlerCharacterData');
     }
 
 }
