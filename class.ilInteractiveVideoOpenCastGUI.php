@@ -257,7 +257,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 
         $iv_opencast = new ilInteractiveVideoOpenCast();
         $event_id = $iv_opencast->getEventIdFromObjectId($obj_id);
-        if ($event_id !== 'opc_dummy') {
+        if ($event_id !== 'opc_dummy' && $event_id !== '') {
             $custom_template->setVariable('CURRENT_TITLE',
                 ilInteractiveVideoPlugin::getInstance()->txt("opc_selection_current"));
         }
@@ -351,7 +351,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             false, false);
         $instance = new ilInteractiveVideoOpenCast();
         $instance->doReadVideoSource($obj->getId());
-        if ($instance->getOpcId() !== self::OPC_DUMMY_ID) {
+        if ($instance->getOpcId() !== self::OPC_DUMMY_ID && $instance->getOpcId() !== '' ) {
             $player->setVariable('PLAYER_ID', $player_id);
             $url = xoctSecureLink::signPlayer($this->getVideoUrl($instance->getOpcId()));
             # $signed_url = xoctConf::getConfig(xoctConf::F_SIGN_DOWNLOAD_LINKS) ? xoctSecureLink::signDownload($url) : $url;
