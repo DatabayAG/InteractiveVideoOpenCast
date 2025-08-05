@@ -115,7 +115,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             ], $this->dic->ui()->mainTemplate());
         } else {
             $this->dic->language()->toJSMap([
-                'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_select_video'),
+                'select_video' => ilInteractiveVideoPlugin::getInstance()->txt('opc_change'),
                 'title' => ilInteractiveVideoPlugin::getInstance()->txt('opc_title'),
                 'opc_insert' => ilInteractiveVideoPlugin::getInstance()->txt('opc_insert')
             ], $this->dic->ui()->mainTemplate());
