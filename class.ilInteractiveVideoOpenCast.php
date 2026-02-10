@@ -1,7 +1,5 @@
 <?php
 
-require_once 'Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/interface.ilInteractiveVideoSource.php';
-
 /**
  * Class ilInteractiveVideoOpenCast
  */
@@ -157,7 +155,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     /**
      * @param $obj_id
      */
-    public function doDeleteVideoSource($obj_id)
+    public function doDeleteVideoSource($obj_id) : int
     {
         $this->beforeDeleteVideoSource($obj_id);
     }
@@ -165,7 +163,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     /**
      * @param $obj_id
      */
-    public function beforeDeleteVideoSource($obj_id)
+    public function beforeDeleteVideoSource($obj_id) : int
     {
         $this->removeEntryFromTable($obj_id);
     }
@@ -207,7 +205,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     /**
      * @return string
      */
-    public function getClass()
+    public function getClass() : string
     {
         return __CLASS__;
     }
@@ -215,7 +213,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     /**
      * @return bool
      */
-    public function isFileBased()
+    public function isFileBased() : bool
     {
         return false;
     }
@@ -223,7 +221,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     /**
      * @return ilInteractiveVideoOpenCastGUI
      */
-    public function getGUIClass()
+    public function getGUIClass() : ilInteractiveVideoSourceGUI
     {
         require_once dirname(__FILE__) . '/class.ilInteractiveVideoOpenCastGUI.php';
         return new ilInteractiveVideoOpenCastGUI();
@@ -232,7 +230,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
     /**
      * @return string
      */
-    public function getId()
+    public function getId() : string
     {
         return $this->id;
     }
@@ -292,7 +290,7 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
 
     }
 
-    public function hasOwnPlayer()
+    public function hasOwnPlayer() : bool
     {
         return true;
     }

@@ -5,9 +5,13 @@ use srag\Plugins\Opencast\Container\Init;
 use ILIAS\Data\URI;
 use srag\Plugins\Opencast\Model\Series\SeriesAPIRepository;
 use srag\Plugins\Opencast\UI\Integration\Events;
+use srag\Plugins\Opencast\Views\Series\EventActionResolver;
+use srag\Plugins\Opencast\Views\Series\EventSettingsResolver;
 
 class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
 {
+    const PATH = 'Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/';
+
     public const CMD_CANCEL = "cancel";
     public const CMD_CREATE = "create";
     public const PROP_EVENT_ID = 'event_id';
@@ -23,7 +27,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     public const XVID_OPC_URL = 'opc_url';
     private \srag\Plugins\Opencast\Container\Container $container;
     private ilOpenCastPlugin $opencast_plugin;
-    private ilOpencastPageComponentPlugin $plugin;
+    private $plugin;
     private \ilGlobalTemplateInterface $main_tpl;
     protected ?Container $dic = null;
     protected string $ajax_url;
@@ -34,7 +38,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $this->main_tpl = $DIC->ui()->mainTemplate();
         $this->container = Init::init($this->getDIC());
         $this->opencast_plugin = $this->container->plugin();
-        $this->plugin = ilOpencastPageComponentPlugin::getInstance();
+        $this->plugin = ilInteractiveVideoPlugin::getInstance();
     }
 
     private function getDIC()
@@ -131,7 +135,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             $option->addSubItem($opc_inject_text);
 
         } else {
-            $tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/opcMediaPortalAjaxQuery.js');
+            $tpl->addJavaScript(self::PATH . 'js/opcMediaPortalAjaxQuery.js');
             $opc_id = new ilHiddenInputGUI('opc_id');
             $option->addSubItem($opc_id);
             $info_test = new ilNonEditableValueGUI('', 'opc_id_text');
@@ -141,8 +145,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             $option->addSubItem($opc_url);
         }
 
-        $tpl_modal = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.modal.html',
-            false, false);
+        $tpl_modal = new ilTemplate("../../VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.modal.html", false, false, $this->plugin->getDirectory());
 
         $modal = ilModalGUI::getInstance();
         $modal->setId("OpencastSelectionModal");
@@ -212,6 +215,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     public function getTable() : void
     {
         global $DIC;
+        $DIC->ui()->mainTemplate()->addJavaScript(self::PATH . 'js/opcMediaPortalAjaxQuery.js');
         $DIC->tabs()->addSubTab('editProperties', $DIC->language()->txt('settings'),
             $DIC->ctrl()->getLinkTarget(new ilObjInteractiveVideoGUI(), 'editProperties'));
         $this->addTab(null, true);
@@ -252,8 +256,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             )
         );
 
-        $custom_template = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.oc.custom.html',
-            true, true);
+        $custom_template = new ilTemplate("../../VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.oc.custom.html", true, true, $this->plugin->getDirectory());
 
         $iv_opencast = new ilInteractiveVideoOpenCast();
         $event_id = $iv_opencast->getEventIdFromObjectId($obj_id);
@@ -297,12 +300,14 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         $instance->doReadVideoSource($obj_id);
 
         if ($instance->getOpcId() !== 'opc_dummy' && $instance->getOpcId() !== '') {
-            $opencast_container = Init::init();
-            $event = new Events($DIC->ui()->factory(), $opencast_container);
+            $container = Init::init($DIC);
+            $ui_integration = $container->uiIntegration($this->plugin);
+            $mine = $ui_integration->mine();
+
             $iv_opencast = new ilInteractiveVideoOpenCast();
             $event_id = $iv_opencast->getEventIdFromObjectId($obj_id);
             if ($event_id !== null) {
-                $item_list = $event->asItemFromEventId($event_id);
+                $item_list = $mine->asDataTableWithFilters();
                 return $DIC->ui()->renderer()->render($item_list);
             }
         }
@@ -331,9 +336,9 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
      * @param ilGlobalTemplate $tpl
      * @return ilGlobalTemplate
      */
-    public function addPlayerElements($tpl)
+    public function addPlayerElements($tpl) : ilGlobalPageTemplate
     {
-        $tpl->addJavaScript('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/js/jquery.InteractiveVideoOpenCastPlayer.js');
+        $tpl->addJavaScript(self::PATH . 'js/jquery.InteractiveVideoOpenCastPlayer.js');
         ilPlayerUtil::initMediaElementJs($tpl, false);
         return $tpl;
     }
@@ -345,7 +350,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
      * @throws ilException
      * @throws xoctException
      */
-    public function getPlayer($player_id, $obj)
+    public function getPlayer($player_id, $obj) : ilTemplate
     {
         $player = new ilTemplate('Customizing/global/plugins/Services/Repository/RepositoryObject/InteractiveVideo/VideoSources/plugin/InteractiveVideoOpenCast/tpl/tpl.video.html',
             false, false);
@@ -405,7 +410,12 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
         return false;
     }
 
-    public function getConfigForm($form)
+    public function getConfigForm($form) : void
     {
+    }
+
+    public function getEditFormCustom(ilPropertyFormGUI $a_form, ilObjInteractiveVideo|ilObject|null $object)
+    {
+        // TODO: Implement getEditFormCustom() method.
     }
 }
