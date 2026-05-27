@@ -307,7 +307,13 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
             $iv_opencast = new ilInteractiveVideoOpenCast();
             $event_id = $iv_opencast->getEventIdFromObjectId($obj_id);
             if ($event_id !== null) {
-                $item_list = $mine->asDataTableWithFilters();
+                $current_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class,
+                                                                                                   ilObjInteractiveVideoGUI::class
+                    ], 'update'));
+                $target_url = new URI(ILIAS_HTTP_PATH . '/' . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class,
+                                                                                                  ilObjInteractiveVideoGUI::class
+                    ], 'update'));
+                $item_list = $mine->asDataTableWithFilters($current_url, $target_url,self::PROP_EVENT_ID);
                 return $DIC->ui()->renderer()->render($item_list);
             }
         }
@@ -339,7 +345,7 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     public function addPlayerElements($tpl) : ilGlobalPageTemplate
     {
         $tpl->addJavaScript(self::PATH . 'js/jquery.InteractiveVideoOpenCastPlayer.js');
-        ilPlayerUtil::initMediaElementJs($tpl, false);
+        #ilPlayerUtil::initMediaElementJs($tpl, false);
         return $tpl;
     }
 
@@ -369,18 +375,11 @@ class ilInteractiveVideoOpenCastGUI implements ilInteractiveVideoSourceGUI
     {
 
         $event = xoctInternalAPI::getInstance()->events()->read($event_id);
-        $download_dtos = $event->publications()->getDownloadDtos(); // sortiert nach Auflösung (descending)
-        if (empty($download_dtos)) {
-            throw new ilException('Video with id ' . $event_id . ' has no valid download url');
+        $player_link = $event->publications()->getPlayerLink(); // sortiert nach Auflösung (descending)
+        if($player_link !== null) {
+            return $player_link;
         }
-        foreach ($download_dtos as $usage_type => $content) {
-            foreach ($content as $usage_id => $download_dtos) {
-                if ($download_dtos !== null) {
-                    $first = $download_dtos[0]->getUrl();
-                    return $first;
-                }
-            }
-        }
+
         return '';
     }
 
