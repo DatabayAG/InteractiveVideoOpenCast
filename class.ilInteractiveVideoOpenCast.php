@@ -139,6 +139,10 @@ class ilInteractiveVideoOpenCast implements ilInteractiveVideoSource
                 'opc_url' => array('text', $opc_url)
             )
         );
+        $ref_id = xvmp::lookupRefId($obj_id);
+        $iv_object = new ilObjInteractiveVideo($ref_id);
+        $iv_object->setSourceId('opc');
+        $iv_object->doUpdate();
     }
 
     public function getEventIdFromObjectId($obj_id)
